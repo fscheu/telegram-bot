@@ -24,22 +24,29 @@ def handle_message(message):
 
     # Crear un nuevo thread_id si el usuario no tiene uno
     if user_id not in user_threads:
-        thread = openai.Thread.create(assistant_id=ASSISTANT_ID)
-        user_threads[user_id] = thread["id"]
+        thread = openai.beta.threads.create()
+        user_threads[user_id] = thread.id
 
     thread_id = user_threads[user_id]
 
     # Enviar mensaje al Assistant de OpenAI
-    openai.ThreadMessage.create(
+    openai.beta.threads.messages.create(
         thread_id=thread_id,
         role="user",
         content=user_text
     )
 
-    # Obtener la respuesta del asistente
-    response = openai.Thread.run(assistant_id=ASSISTANT_ID, thread_id=thread_id)
+    # Ejecutar el asistente
+    run = openai.beta.threads.runs.create(
+        thread_id=thread_id,
+        assistant_id=ASSISTANT_ID
+    )
 
-    bot.send_message(user_id, response["messages"][-1]["content"])
+    # Obtener la respuesta generada
+    response = openai.beta.threads.messages.list(thread_id=thread_id)
+
+    # Enviar la última respuesta del asistente al usuario en Telegram
+    bot.send_message(user_id, response.data[0].content[0].text.value)
 
 # Iniciar el bot
 bot.polling()
