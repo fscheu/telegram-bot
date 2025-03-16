@@ -67,7 +67,7 @@ def handle_message(message):
 
     if response.data:
         reply = response.data[0].content[0].text.value
-        print(f"✅ Respuesta de OpenAI: {reply}")  # LOG 5: Mostrar respuesta de OpenAI
+        print(f"✅ Respuesta de OpenAI: {response}")  # LOG 5: Mostrar respuesta de OpenAI
     else:
         reply = "❌ Error: No se recibió respuesta del asistente."
         print(reply)
