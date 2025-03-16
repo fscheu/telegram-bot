@@ -1,6 +1,7 @@
 import os
 import openai
 import telebot
+import time
 
 # Configuración de API Keys desde variables de entorno
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -46,6 +47,14 @@ def handle_message(message):
         assistant_id=ASSISTANT_ID
     )
     print(f"⏳ Ejecutando el asistente en thread {thread_id}")  # LOG 4: Ver si OpenAI responde
+
+    # Esperar hasta que el Run esté completado
+    while True:
+        run_status = openai.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
+        if run_status.status == "completed":
+            break
+        print(f"⌛ Esperando que OpenAI termine... (Estado: {run_status.status})")
+        time.sleep(1)
 
     # Obtener la respuesta generada
     response = openai.beta.threads.messages.list(thread_id=thread_id)
