@@ -3,6 +3,8 @@ import openai
 import telebot
 import time
 import re
+import requests
+from io import BytesIO
 
 # Configuración de API Keys desde variables de entorno
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -19,7 +21,7 @@ openai.api_key = OPENAI_API_KEY
 # Guardar thread_id por usuario
 user_threads = {}
 
-# Expresión regular para detectar links de imágenes
+# Expresión regular para detectar links de imágenes (Markdown format)
 image_pattern = re.compile(r"!\[.*?\]\((https?://[^\s]+)\)")
 
 @bot.message_handler(func=lambda message: True)
@@ -81,9 +83,18 @@ def handle_message(message):
         # Enviar el mensaje de texto sin el link
         if reply_text:
             bot.send_message(user_id, reply_text)
-        
-        # Enviar la imagen
-        bot.send_photo(user_id, image_url)
+
+        try:
+            # Descargar la imagen
+            response = requests.get(image_url)
+            response.raise_for_status()  # Verifica si la descarga fue exitosa
+            image_data = BytesIO(response.content)
+
+            # Enviar la imagen a Telegram
+            bot.send_photo(user_id, image_data)
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Error al descargar la imagen: {e}")
+            bot.send_message(user_id, "Lo siento, no pude acceder a la imagen proporcionada.")
     else:
         # Si no hay imagen, enviar el texto normalmente
         bot.send_message(user_id, reply)
