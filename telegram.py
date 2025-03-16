@@ -2,6 +2,7 @@ import os
 import openai
 import telebot
 import time
+import re
 
 # Configuración de API Keys desde variables de entorno
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -17,6 +18,9 @@ openai.api_key = OPENAI_API_KEY
 
 # Guardar thread_id por usuario
 user_threads = {}
+
+# Expresión regular para detectar links de imágenes
+image_pattern = re.compile(r"!\[.*?\]\((https?://[^\s]+)\)")
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
@@ -66,8 +70,23 @@ def handle_message(message):
         reply = "❌ Error: No se recibió respuesta del asistente."
         print(reply)
 
-    # Enviar la última respuesta del asistente al usuario en Telegram
-    bot.send_message(user_id, reply)
+    # Detectar si hay un link de imagen en la respuesta
+    image_match = image_pattern.search(reply)
+    
+    if image_match:
+        image_url = image_match.group(1)  # Obtener la URL de la imagen
+        reply_text = re.sub(image_pattern, '', reply).strip()  # Eliminar el link del texto
+        print(f"🖼 Imagen detectada: {image_url}")
+
+        # Enviar el mensaje de texto sin el link
+        if reply_text:
+            bot.send_message(user_id, reply_text)
+        
+        # Enviar la imagen
+        bot.send_photo(user_id, image_url)
+    else:
+        # Si no hay imagen, enviar el texto normalmente
+        bot.send_message(user_id, reply)
 
 # Iniciar el bot
 print("🚀 Bot iniciado...")
