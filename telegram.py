@@ -83,11 +83,14 @@ def handle_message(message):
         # Enviar el mensaje de texto sin el link
         if reply_text:
             bot.send_message(user_id, reply_text)
-        
+
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
         time.sleep(1)
         try:
             # Descargar la imagen
-            response = requests.get(image_url)
+            response = requests.get(image_url, headers=headers)
             response.raise_for_status()  # Verifica si la descarga fue exitosa
             image_data = BytesIO(response.content)
 
