@@ -83,7 +83,8 @@ def handle_message(message):
         # Enviar el mensaje de texto sin el link
         if reply_text:
             bot.send_message(user_id, reply_text)
-
+        
+        time.sleep(1)
         try:
             # Descargar la imagen
             response = requests.get(image_url)
